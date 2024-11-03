@@ -1,0 +1,15 @@
+<!-- app/views/access_requests/new.html.erb -->
+<div class="container mt-5">
+  <h2>Request Access to Patient Data</h2>
+  <%= form_with model: @access_request, url: access_requests_path, local: true do |f| %>
+    <div class="mb-3">
+      <%= f.label :patient_id, "Patient ID" %>
+      <%= f.text_field :patient_id, class: "form-control", placeholder: "Enter Patient DID" %>
+    </div>
+    <div class="mb-3">
+      <%= f.label :data_types, "Data Types" %>
+      <%= f.select :data_types, options_for_select(["medical_history", "lab_results", "prescriptions"]), {}, { multiple: true, class: "form-select" } %>
+    </div>
+    <%= f.submit "Submit Request", class: "btn btn-primary" %>
+  <% end %>
+</div>

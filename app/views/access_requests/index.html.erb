@@ -1,0 +1,31 @@
+<p style="color: green"><%= notice %></p>
+
+<!-- app/views/access_requests/index.html.erb -->
+<div class="container mt-5">
+  <h2>Access Requests</h2>
+  <table class="table table-striped mt-3">
+    <thead>
+      <tr>
+        <th>Request ID</th>
+        <th>Patient ID</th>
+        <th>Company ID</th>
+        <th>Status</th>
+        <th>Created At</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @access_requests.each do |request| %>
+        <tr>
+          <td><%= request.id %></td>
+          <td><%= request.patient_id %></td>
+          <td><%= request.company_id %></td>
+          <td><%= request.status %></td>
+          <td><%= request.created_at %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+
+<%= link_to "New access request", new_access_request_path %>

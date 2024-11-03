@@ -1,0 +1,29 @@
+<div class="container mt-5">
+  <h2>Welcome, <%= current_company.email %>!</h2>
+
+  <h4 class="mt-4">Connected Patients</h4>
+  <ul class="list-group">
+    <% if @connected_patients.any? %>
+      <% @connected_patients.each do |patient| %>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <%= patient.name %>
+          <a href="<%= patient_records_path(patient.id) %>" class="btn btn-sm btn-primary">View Records</a>
+        </li>
+      <% end %>
+    <% else %>
+      <li class="list-group-item">No connected patients</li>
+    <% end %>
+  </ul>
+
+  <h4 class="mt-5">Request Data Access</h4>
+  <form action="/access_requests" method="post">
+    <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+    <div class="mb-3">
+      <label for="accessRequestPatientId" class="form-label">Patient ID</label>
+      <input type="text" id="accessRequestPatientId" name="access_request[patient_id]" class="form-control" placeholder="Enter Patient ID">
+    </div>
+    <input type="hidden" name="access_request[company_id]" value="<%= current_company.id %>">
+    <input type="hidden" name="access_request[status]" value="pending">
+    <button type="submit" class="btn btn-success">Request Access</button>
+  </form>
+</div>

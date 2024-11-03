@@ -1,0 +1,67 @@
+<div class="container mt-5">
+  <h2>Welcome, <%= current_patient.email %>!</h2>
+  
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <h4>My Health Data</h4>
+      <p>Your health information is safe and under your control.</p>
+    </div>
+    <div class="col-md-6">
+      <h4>Connected Organizations</h4>
+      <ul class="list-group">
+        <% if @connected_organizations.present? %>
+          <% @connected_organizations.each do |organization| %>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <%= organization.name %>
+              <button class="btn btn-sm btn-outline-danger" onclick="revokeAccess('<%= organization.id %>')">Revoke</button>
+            </li>
+          <% end %>
+        <% else %>
+          <li class="list-group-item">No organizations connected!</li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="mt-5">
+    <h4>Pending Requests</h4>
+    <ul class="list-group">
+      <% if @pending_requests.present? %>
+        <% @pending_requests.each do |request| %>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span><%= request.organization.name %> - Requested Access</span>
+            <div>
+              <button class="btn btn-sm btn-success" onclick="approveRequest('<%= request.id %>')">Approve</button>
+              <button class="btn btn-sm btn-danger" onclick="denyRequest('<%= request.id %>')">Deny</button>
+            </div>
+          </li>
+        <% end %>
+      <% else %>
+        <li class="list-group-item">No pending requests!</li>
+      <% end %>
+    </ul>
+  </div>
+</div>
+
+<script>
+  function approveRequest(requestId) {
+    fetch(`/data_requests/${requestId}/approve`, {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': '<%= form_authenticity_token %>' }
+    }).then(() => alert('Request approved!'));
+  }
+
+  function denyRequest(requestId) {
+    fetch(`/data_requests/${requestId}/deny`, {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': '<%= form_authenticity_token %>' }
+    }).then(() => alert('Request denied!'));
+  }
+
+  function revokeAccess(orgId) {
+    fetch(`/organizations/${orgId}/revoke`, {
+      method: 'DELETE',
+      headers: { 'X-CSRF-Token': '<%= form_authenticity_token %>' }
+    }).then(() => alert('Access revoked!'));
+  }
+</script>
