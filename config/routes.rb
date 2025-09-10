@@ -14,6 +14,16 @@ Rails.application.routes.draw do
       get :dashboard
     end
   end
+
+  resources :lab_results do
+    collection do
+      get :my_results
+    end
+    member do
+      post :share
+      delete 'shares/:share_id', to: 'lab_results#revoke_share', as: :revoke_share
+    end
+  end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Defines the root path route ("/")

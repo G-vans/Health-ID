@@ -1,0 +1,85 @@
+<h1>My Lab Results</h1>
+
+<div class="row">
+  <div class="col-md-8">
+    <% @credentials.each do |credential| %>
+      <div class="card mb-3">
+        <div class="card-header">
+          <strong><%= JSON.parse(credential.credential_data)['test_name'] %></strong>
+          <span class="badge bg-success ms-2">Active</span>
+        </div>
+        <div class="card-body">
+          <% data = JSON.parse(credential.credential_data) %>
+          <p><strong>Result:</strong> <%= data['result_value'] %> <%= data['result_unit'] %></p>
+          <p><strong>Reference Range:</strong> <%= data['reference_range'] %></p>
+          <p><strong>Test Date:</strong> <%= Date.parse(data['test_date']).strftime('%B %d, %Y') %></p>
+          <p><strong>Lab:</strong> <%= data['lab_name'] %></p>
+          
+          <hr>
+          <h6>Access Permissions</h6>
+          <% if credential.credential_shares.active.any? %>
+            <% credential.credential_shares.active.each do |share| %>
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>
+                  <strong><%= share.verifier.legal_name %></strong>
+                  <small class="text-muted">
+                    (Expires: <%= share.expires_at.strftime('%m/%d/%Y %I:%M %p') %>)
+                  </small>
+                </span>
+                <%= link_to 'Revoke', 
+                    revoke_share_lab_result_path(credential, share_id: share.id), 
+                    method: :delete,
+                    class: 'btn btn-sm btn-outline-danger',
+                    confirm: 'Are you sure you want to revoke access?' %>
+              </div>
+            <% end %>
+          <% else %>
+            <p class="text-muted">No active shares</p>
+          <% end %>
+          
+          <button class="btn btn-primary btn-sm" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#shareModal<%= credential.id %>">
+            Grant Access
+          </button>
+        </div>
+      </div>
+
+      <!-- Share Modal -->
+      <div class="modal fade" id="shareModal<%= credential.id %>" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <%= form_with url: share_lab_result_path(credential), method: :post, local: true do |f| %>
+              <div class="modal-header">
+                <h5 class="modal-title">Grant Access to <%= data['test_name'] %></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-3">
+                  <label class="form-label">Healthcare Provider</label>
+                  <%= f.select :company_id, 
+                      options_from_collection_for_select(Company.all, :id, :legal_name), 
+                      { prompt: 'Select provider...' }, 
+                      { class: 'form-select' } %>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Access Duration</label>
+                  <%= f.select :expires_in, [
+                      ['1 hour', 1],
+                      ['24 hours (default)', 24],
+                      ['1 week', 168],
+                      ['1 month', 720]
+                  ], { selected: 24 }, { class: 'form-select' } %>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <%= f.submit 'Grant Access', class: 'btn btn-primary' %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

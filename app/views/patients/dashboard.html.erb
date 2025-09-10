@@ -4,7 +4,13 @@
   <div class="row mt-4">
     <div class="col-md-6">
       <h4>My Health Data</h4>
-      <p>Your health information is safe and under your control.</p>
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-title">Lab Results</h6>
+          <p class="card-text"><%= current_patient.credentials.lab_results.active.count %> results available</p>
+          <%= link_to "View Lab Results", my_results_lab_results_path, class: "btn btn-primary btn-sm" %>
+        </div>
+      </div>
     </div>
     <div class="col-md-6">
       <h4>Connected Organizations</h4>

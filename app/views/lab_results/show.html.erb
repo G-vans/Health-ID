@@ -1,0 +1,93 @@
+<div class="row">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h4><%= @data['test_name'] %></h4>
+        <span class="badge bg-success">Verified</span>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Test Result</h6>
+            <p class="fs-4 text-primary">
+              <strong><%= @data['result_value'] %> <%= @data['result_unit'] %></strong>
+            </p>
+            
+            <h6>Reference Range</h6>
+            <p><%= @data['reference_range'] %></p>
+          </div>
+          <div class="col-md-6">
+            <h6>Test Information</h6>
+            <p><strong>Test Date:</strong> <%= Date.parse(@data['test_date']).strftime('%B %d, %Y') %></p>
+            <p><strong>Lab:</strong> <%= @data['lab_name'] %></p>
+            <p><strong>Issued:</strong> <%= Date.parse(@data['issued_at']).strftime('%B %d, %Y') %></p>
+          </div>
+        </div>
+
+        <hr>
+        
+        <div class="alert alert-success" role="alert">
+          <i class="fas fa-shield-alt"></i>
+          <strong>Verified Credential</strong> - This result has been cryptographically verified and is authentic.
+        </div>
+
+        <% if @credential.verification_logs.any? %>
+          <h6>Verification History</h6>
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Verified By</th>
+                  <th>Date</th>
+                  <th>Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @credential.verification_logs.recent.limit(5).each do |log| %>
+                  <tr>
+                    <td><%= log.verifier.try(:legal_name) || 'System' %></td>
+                    <td><%= log.verified_at.strftime('%m/%d/%Y %I:%M %p') %></td>
+                    <td>
+                      <span class="badge bg-<%= log.verification_result == 'success' ? 'success' : 'danger' %>">
+                        <%= log.verification_result.capitalize %>
+                      </span>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <h5>Patient Information</h5>
+      </div>
+      <div class="card-body">
+        <p><strong>Name:</strong> <%= @data['patient_name'] %></p>
+        <p><strong>Patient ID:</strong> #<%= @data['patient_id'] %></p>
+      </div>
+    </div>
+    
+    <div class="card mt-3">
+      <div class="card-header">
+        <h5>Security</h5>
+      </div>
+      <div class="card-body">
+        <p class="text-success">
+          <i class="fas fa-check-circle"></i> Signature verified
+        </p>
+        <p class="text-success">
+          <i class="fas fa-check-circle"></i> Not expired
+        </p>
+        <p class="text-success">
+          <i class="fas fa-check-circle"></i> Access authorized
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

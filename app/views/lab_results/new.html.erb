@@ -1,0 +1,88 @@
+<h1>Issue Lab Result</h1>
+
+<%= form_with model: @lab_result, url: lab_results_path, local: true do |f| %>
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Patient</label>
+            <%= f.select :patient_id, 
+                options_from_collection_for_select(@patients, :id, :full_name), 
+                { prompt: 'Select patient...' }, 
+                { class: 'form-select' } %>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Test Name</label>
+            <%= f.text_field :test_name, 
+                class: 'form-control', 
+                placeholder: 'e.g., Complete Blood Count' %>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Result Value</label>
+                <%= f.text_field :result_value, 
+                    class: 'form-control', 
+                    placeholder: 'e.g., 12.5' %>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Unit</label>
+                <%= f.text_field :result_unit, 
+                    class: 'form-control', 
+                    placeholder: 'e.g., g/dL' %>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Reference Range</label>
+            <%= f.text_field :reference_range, 
+                class: 'form-control', 
+                placeholder: 'e.g., 12.0-15.5 g/dL' %>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Test Date</label>
+            <%= f.datetime_local_field :test_date, 
+                class: 'form-control',
+                value: Time.current.strftime('%Y-%m-%dT%H:%M') %>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Notes (Optional)</label>
+            <%= f.text_area :notes, 
+                class: 'form-control', 
+                rows: 3,
+                placeholder: 'Additional notes about the test result...' %>
+          </div>
+
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <%= link_to 'Cancel', company_dashboard_path, class: 'btn btn-secondary me-md-2' %>
+            <%= f.submit 'Issue Lab Result', class: 'btn btn-primary' %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h5>What happens next?</h5>
+        </div>
+        <div class="card-body">
+          <ol>
+            <li>Lab result will be issued as a verifiable credential</li>
+            <li>Patient will be notified of the new result</li>
+            <li>Patient controls who can access this data</li>
+            <li>All access attempts are logged for security</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>
