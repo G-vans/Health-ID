@@ -1,84 +1,69 @@
 <h1>My Lab Results</h1>
 
 <div class="row">
-  <div class="col-md-8">
-    <% @credentials.each do |credential| %>
-      <div class="card mb-3">
-        <div class="card-header">
-          <strong><%= JSON.parse(credential.credential_data)['test_name'] %></strong>
-          <span class="badge bg-success ms-2">Active</span>
-        </div>
-        <div class="card-body">
-          <% data = JSON.parse(credential.credential_data) %>
-          <p><strong>Result:</strong> <%= data['result_value'] %> <%= data['result_unit'] %></p>
-          <p><strong>Reference Range:</strong> <%= data['reference_range'] %></p>
-          <p><strong>Test Date:</strong> <%= Date.parse(data['test_date']).strftime('%B %d, %Y') %></p>
-          <p><strong>Lab:</strong> <%= data['lab_name'] %></p>
-          
-          <hr>
-          <h6>Access Permissions</h6>
-          <% if credential.credential_shares.active.any? %>
-            <% credential.credential_shares.active.each do |share| %>
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span>
-                  <strong><%= share.verifier.legal_name %></strong>
-                  <small class="text-muted">
-                    (Expires: <%= share.expires_at.strftime('%m/%d/%Y %I:%M %p') %>)
-                  </small>
-                </span>
-                <%= link_to 'Revoke', 
-                    revoke_share_lab_result_path(credential, share_id: share.id), 
-                    method: :delete,
-                    class: 'btn btn-sm btn-outline-danger',
-                    confirm: 'Are you sure you want to revoke access?' %>
-              </div>
-            <% end %>
-          <% else %>
-            <p class="text-muted">No active shares</p>
-          <% end %>
-          
-          <button class="btn btn-primary btn-sm" 
-                  data-bs-toggle="modal" 
-                  data-bs-target="#shareModal<%= credential.id %>">
-            Grant Access
-          </button>
-        </div>
-      </div>
-
-      <!-- Share Modal -->
-      <div class="modal fade" id="shareModal<%= credential.id %>" tabindex="-1">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <%= form_with url: share_lab_result_path(credential), method: :post, local: true do |f| %>
-              <div class="modal-header">
-                <h5 class="modal-title">Grant Access to <%= data['test_name'] %></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-              </div>
-              <div class="modal-body">
-                <div class="mb-3">
-                  <label class="form-label">Healthcare Provider</label>
-                  <%= f.select :company_id, 
-                      options_from_collection_for_select(Company.all, :id, :legal_name), 
-                      { prompt: 'Select provider...' }, 
-                      { class: 'form-select' } %>
+  <div class="col-md-12">
+    <% if @lab_results.any? %>
+      <% @lab_results.group_by(&:test_date).each do |date, results| %>
+        <div class="card mb-4">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+              Test Date: <%= date.strftime('%B %d, %Y') %>
+              <small class="float-end"><%= results.first.lab.name %></small>
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <% results.each do |result| %>
+                <div class="col-md-6 mb-3">
+                  <div class="card">
+                    <div class="card-body">
+                      <h6 class="card-title"><%= result.test_name %></h6>
+                      <p class="card-text">
+                        <strong>Result:</strong> 
+                        <span class="<%= result.notes&.include?('HIGH') || result.notes&.include?('ELEVATED') ? 'text-danger' : '' %>">
+                          <%= result.result_value %> <%= result.result_unit %>
+                        </span><br>
+                        <strong>Reference:</strong> <%= result.reference_range %><br>
+                        <% if result.notes.present? %>
+                          <small class="text-muted"><%= result.notes %></small>
+                        <% end %>
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div class="mb-3">
-                  <label class="form-label">Access Duration</label>
-                  <%= f.select :expires_in, [
-                      ['1 hour', 1],
-                      ['24 hours (default)', 24],
-                      ['1 week', 168],
-                      ['1 month', 720]
-                  ], { selected: 24 }, { class: 'form-select' } %>
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <%= f.submit 'Grant Access', class: 'btn btn-primary' %>
-              </div>
-            <% end %>
+              <% end %>
+            </div>
           </div>
         </div>
+      <% end %>
+      
+      <!-- AI Analysis Section -->
+      <div class="card border-primary mb-3">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">AI Health Analysis</h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted">Click the button below to run AI analysis on your lab results. This will analyze patterns across all your test results.</p>
+          <%= button_to "Run AI Analysis", analyze_lab_results_path, 
+              method: :post, 
+              class: "btn btn-lg btn-primary",
+              data: { confirm: "This will analyze your lab results using local AI. Continue?" } %>
+        </div>
+      </div>
+      
+      <!-- Summary Section -->
+      <div class="card bg-light">
+        <div class="card-body">
+          <h5>Summary</h5>
+          <p>Total Results: <%= @lab_results.count %></p>
+          <p>Latest Test: <%= @lab_results.first.test_date.strftime('%B %d, %Y') %></p>
+          <p>Oldest Test: <%= @lab_results.last.test_date.strftime('%B %d, %Y') %></p>
+        </div>
+      </div>
+    <% else %>
+      <div class="alert alert-info">
+        <h4>No Lab Results Yet</h4>
+        <p>Your lab results will appear here once they are added by healthcare providers.</p>
       </div>
     <% end %>
   </div>

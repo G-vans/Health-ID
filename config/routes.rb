@@ -18,6 +18,7 @@ Rails.application.routes.draw do
   resources :lab_results do
     collection do
       get :my_results
+      post :analyze
     end
     member do
       post :share

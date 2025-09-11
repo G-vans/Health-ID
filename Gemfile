@@ -78,3 +78,16 @@ gem "http", "~> 5.2"
 gem "graphql-client", "~> 0.23.0"
 
 gem "devise", "~> 4.9"
+
+# Ruby LLM for local AI reasoning with gpt-oss
+gem 'ruby-openai'
+gem 'langchainrb'
+gem 'ollama-ai'
+
+# For notifications
+gem 'twilio-ruby'
+gem 'sendgrid-ruby'
+
+# Background jobs for AI processing
+gem 'sidekiq'
+gem 'redis'

@@ -9,7 +9,7 @@ class LabResult < ApplicationRecord
   validates :reference_range, presence: true
   validates :test_date, presence: true
 
-  after_create :issue_credential
+  # after_create :issue_credential # Temporarily disabled due to encryption config issue
 
   def to_credential_data
     {
@@ -18,9 +18,9 @@ class LabResult < ApplicationRecord
       result_unit: result_unit,
       reference_range: reference_range,
       test_date: test_date,
-      lab_name: lab.legal_name,
+      lab_name: lab.name,
       lab_id: lab.id,
-      patient_name: "#{patient.first_name} #{patient.last_name}",
+      patient_name: patient.name,
       patient_id: patient.id,
       issued_at: Time.current
     }

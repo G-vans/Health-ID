@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2025_08_06_155043) do
+ActiveRecord::Schema[7.0].define(version: 2025_09_10_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -22,6 +22,25 @@ ActiveRecord::Schema[7.0].define(version: 2025_08_06_155043) do
     t.datetime "updated_at", null: false
     t.index ["company_id"], name: "index_access_requests_on_company_id"
     t.index ["patient_id"], name: "index_access_requests_on_patient_id"
+  end
+
+  create_table "ai_analyses", force: :cascade do |t|
+    t.bigint "patient_id", null: false
+    t.string "analyzable_type"
+    t.bigint "analyzable_id"
+    t.integer "analysis_type", default: 0
+    t.text "reasoning_output"
+    t.integer "risk_assessment", default: 1
+    t.json "recommendations"
+    t.boolean "alert_sent", default: false
+    t.datetime "alert_sent_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["analyzable_type", "analyzable_id"], name: "index_ai_analyses_on_analyzable"
+    t.index ["analyzable_type", "analyzable_id"], name: "index_ai_analyses_on_analyzable_type_and_analyzable_id"
+    t.index ["patient_id", "created_at"], name: "index_ai_analyses_on_patient_id_and_created_at"
+    t.index ["patient_id"], name: "index_ai_analyses_on_patient_id"
+    t.index ["risk_assessment", "alert_sent"], name: "index_ai_analyses_on_risk_assessment_and_alert_sent"
   end
 
   create_table "companies", force: :cascade do |t|
@@ -101,6 +120,20 @@ ActiveRecord::Schema[7.0].define(version: 2025_08_06_155043) do
     t.index ["test_date"], name: "index_lab_results_on_test_date"
   end
 
+  create_table "notification_logs", force: :cascade do |t|
+    t.bigint "patient_id", null: false
+    t.string "notification_type", null: false
+    t.string "channel"
+    t.text "content"
+    t.datetime "sent_at"
+    t.json "metadata"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["notification_type", "sent_at"], name: "index_notification_logs_on_notification_type_and_sent_at"
+    t.index ["patient_id", "sent_at"], name: "index_notification_logs_on_patient_id_and_sent_at"
+    t.index ["patient_id"], name: "index_notification_logs_on_patient_id"
+  end
+
   create_table "patients", force: :cascade do |t|
     t.string "health_id"
     t.string "patient_id"
@@ -112,8 +145,25 @@ ActiveRecord::Schema[7.0].define(version: 2025_08_06_155043) do
     t.string "reset_password_token"
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
+    t.date "date_of_birth"
+    t.string "gender"
+    t.string "phone_number"
     t.index ["email"], name: "index_patients_on_email", unique: true
     t.index ["reset_password_token"], name: "index_patients_on_reset_password_token", unique: true
+  end
+
+  create_table "travel_advisories", force: :cascade do |t|
+    t.bigint "patient_id", null: false
+    t.string "destination", null: false
+    t.date "departure_date", null: false
+    t.json "health_risks"
+    t.json "preparations"
+    t.json "emergency_contacts"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["destination", "departure_date"], name: "index_travel_advisories_on_destination_and_departure_date"
+    t.index ["patient_id", "departure_date"], name: "index_travel_advisories_on_patient_id_and_departure_date"
+    t.index ["patient_id"], name: "index_travel_advisories_on_patient_id"
   end
 
   create_table "verification_logs", force: :cascade do |t|
@@ -135,11 +185,14 @@ ActiveRecord::Schema[7.0].define(version: 2025_08_06_155043) do
 
   add_foreign_key "access_requests", "companies"
   add_foreign_key "access_requests", "patients"
+  add_foreign_key "ai_analyses", "patients"
   add_foreign_key "connections", "companies"
   add_foreign_key "connections", "patients"
   add_foreign_key "credential_shares", "credentials"
   add_foreign_key "credentials", "patients", column: "holder_id"
   add_foreign_key "lab_results", "companies", column: "lab_id"
   add_foreign_key "lab_results", "patients"
+  add_foreign_key "notification_logs", "patients"
+  add_foreign_key "travel_advisories", "patients"
   add_foreign_key "verification_logs", "credentials"
 end

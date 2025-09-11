@@ -1,5 +1,5 @@
 <div class="container mt-5">
-  <h2>Welcome, <%= current_patient.email %>!</h2>
+  <h2>Welcome, <%= current_patient.name || current_patient.email %>!</h2>
   
   <div class="row mt-4">
     <div class="col-md-6">
@@ -7,25 +7,43 @@
       <div class="card">
         <div class="card-body">
           <h6 class="card-title">Lab Results</h6>
-          <p class="card-text"><%= current_patient.credentials.lab_results.active.count %> results available</p>
+          <p class="card-text"><%= current_patient.lab_results.count %> results available</p>
           <%= link_to "View Lab Results", my_results_lab_results_path, class: "btn btn-primary btn-sm" %>
         </div>
       </div>
     </div>
     <div class="col-md-6">
-      <h4>Connected Organizations</h4>
+      <h4>Connected Healthcare Providers</h4>
       <ul class="list-group">
-        <% if @connected_organizations.present? %>
-          <% @connected_organizations.each do |organization| %>
+        <% if current_patient.connected_organizations.any? %>
+          <% current_patient.connected_organizations.each do |organization| %>
             <li class="list-group-item d-flex justify-content-between align-items-center">
               <%= organization.name %>
-              <button class="btn btn-sm btn-outline-danger" onclick="revokeAccess('<%= organization.id %>')">Revoke</button>
+              <span class="badge bg-success">Connected</span>
             </li>
           <% end %>
         <% else %>
-          <li class="list-group-item">No organizations connected!</li>
+          <li class="list-group-item">No healthcare providers connected yet</li>
         <% end %>
       </ul>
+      
+      <div class="card mt-3">
+        <div class="card-body">
+          <h6 class="card-title">Health Summary</h6>
+          <p class="card-text">
+            Latest test: <%= current_patient.lab_results.maximum(:test_date)&.strftime('%B %d, %Y') || 'None' %><br>
+            Total results: <%= current_patient.lab_results.count %>
+          </p>
+          <% if current_patient.lab_results.any? %>
+            <% latest_abnormal = current_patient.lab_results.where("notes LIKE ? OR notes LIKE ?", "%HIGH%", "%ELEVATED%").order(test_date: :desc).first %>
+            <% if latest_abnormal %>
+              <div class="alert alert-warning">
+                <strong>⚠️ Attention:</strong> Recent abnormal result in <%= latest_abnormal.test_name %>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
     </div>
   </div>
   
@@ -35,7 +53,7 @@
       <% if @pending_requests.present? %>
         <% @pending_requests.each do |request| %>
           <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span><%= request.organization.name %> - Requested Access</span>
+            <span><%= request.company.name %> - Requested Access</span>
             <div>
               <button class="btn btn-sm btn-success" onclick="approveRequest('<%= request.id %>')">Approve</button>
               <button class="btn btn-sm btn-danger" onclick="denyRequest('<%= request.id %>')">Deny</button>

@@ -1,6 +1,6 @@
 class LabResultsController < ApplicationController
   before_action :authenticate_company!, only: [:new, :create]
-  before_action :authenticate_patient!, only: [:my_results, :share, :revoke_share]
+  before_action :authenticate_patient!, only: [:my_results, :share, :revoke_share, :analyze]
   
   def new
     @lab_result = LabResult.new
@@ -22,10 +22,7 @@ class LabResultsController < ApplicationController
   end
 
   def my_results
-    @credentials = current_patient.credentials
-                                  .lab_results
-                                  .active
-                                  .includes(:issuer)
+    @lab_results = current_patient.lab_results.includes(:lab).order(test_date: :desc)
   end
 
   def show
@@ -79,6 +76,27 @@ class LabResultsController < ApplicationController
       redirect_to my_results_lab_results_path, notice: 'Access revoked'
     else
       redirect_to my_results_lab_results_path, alert: result[:error]
+    end
+  end
+
+  def analyze
+    # Get latest lab result for analysis
+    latest_result = current_patient.lab_results.order(test_date: :desc).first
+    
+    if latest_result
+      service = HealthReasoningService.new(current_patient)
+      analysis = service.analyze_new_lab_results(latest_result)
+      
+      Rails.logger.info "Analysis complete for patient #{current_patient.id}: #{analysis[:risk_assessment]} risk"
+      
+      # Store in session for display
+      session[:ai_analysis] = analysis
+      
+      redirect_to my_results_lab_results_path, 
+        notice: "AI Analysis complete! Check the terminal for detailed output. Risk Level: #{analysis[:risk_assessment]}"
+    else
+      redirect_to my_results_lab_results_path, 
+        alert: "No lab results available for analysis"
     end
   end
 
